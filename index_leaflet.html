@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>Leaflet Postgis</title>
+		<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+		<style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+		</style>
+	</head>
+	<body>
+		<div id="map"></div>
+	    <script type="text/javascript">
+		
+		// Fonction pop up quand on clique sur un feature :
+		function onEachFeature(feature, layer){
+			layer.bindPopup("<B>ID : " + feature.properties.id + "</B><BR> Comment : " + feature.properties.comment);
+		};
+		
+		// On va chercher les données en GeoJson de la BD PostGis via le fichier get_pg.php
+		
+		var oReq = new XMLHttpRequest();
+		oReq.open("get","get_pg.php",false);
+		oReq.onload = function(){
+			resultReq = oReq.responseText;
+		};
+		oReq.send();
+
+		var geojsonPoint = JSON.parse(resultReq)
+		
+		// objet carte
+		
+		var map = L.map('map').setView([50.63459, 3.06794], 16);
+		
+		// fond de plan (ici MapQuest)
+		
+		L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png').addTo(map);
+		
+		// Défini le style des features
+		
+		var geojsonMarkerOptions = {
+			radius: 8,
+			fillColor: "#ff7800",
+			color: "#000",
+			weight: 1,
+			opacity: 1,
+			fillOpacity: 0.8
+		};
+		
+		// Ajoute notre couche à la carte
+		
+		var myLayer = L.geoJson(geojsonPoint,{
+			onEachFeature: onEachFeature,
+			pointToLayer: function (feature, latlng) {
+				return L.circleMarker(latlng, geojsonMarkerOptions);
+			}	
+		}).addTo(map);
+		
+		</script>
+    </body>
+</html>
